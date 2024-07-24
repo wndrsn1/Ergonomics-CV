@@ -35,29 +35,53 @@ def calculate_angle(point1, point2, point3):
     return np.degrees(angle)
 
 # Function to calculate REBA score.
-def calculate_reba_score(neck_angle, trunk_angle, upper_arm_angle, lower_arm_angle):
+def calculate_reba_score(angles):
+    neck_angle, trunk_angle, upper_arm_angle, lower_arm_angle, leg_angle = angles
     score = 0
-    if neck_angle < 20:
+    
+    # Score calculation based on angles
+    if neck_angle <= 20:
         score += 1
-    elif neck_angle >20:
+    elif neck_angle <= 30:
         score += 2
-    if trunk_angle < 20:
-        score += 2
-    elif trunk_angle > 20:
+    elif neck_angle <= 45:
         score += 3
-    elif trunk_angle > 60:
+    else:
         score += 4
-    if upper_arm_angle < 20:
+    
+    if trunk_angle <= 20:
         score += 2
-    elif 90>upper_arm_angle > 45:
+    elif trunk_angle <= 45:
         score += 3
-    elif upper_arm_angle > 120:
+    elif trunk_angle <= 60:
         score += 4
+    else:
+        score += 5
+    
+    if upper_arm_angle <= 20:
+        score += 2
+    elif upper_arm_angle <= 45:
+        score += 3
+    elif upper_arm_angle <= 90:
+        score += 4
+    else:
+        score += 5
+    
     if lower_arm_angle < 20:
         score += 1
-    elif lower_arm_angle > 20:
+    elif lower_arm_angle <= 45:
         score += 2
-        
+    elif lower_arm_angle <= 90:
+        score += 3
+    else:
+        score += 4
+
+    if 60>leg_angle > 30:
+        score += 1
+    elif 30< leg_angle <= 60:
+        score += 2
+
+    
     return score
 
 # Open video capture.
@@ -82,7 +106,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
         if results.pose_landmarks:
             landmarks = results.pose_landmarks.landmark
             
-            # Extract landmarks for neck, trunk, upper arm, and lower arm.
+            # Extract landmarks for neck, trunk, upper arm, lower arm, and legs.
             neck = [
                 mp_pose.PoseLandmark.NOSE.value,
                 mp_pose.PoseLandmark.LEFT_SHOULDER.value,
@@ -102,6 +126,11 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
                 mp_pose.PoseLandmark.LEFT_ELBOW.value,
                 mp_pose.PoseLandmark.LEFT_WRIST.value,
                 mp_pose.PoseLandmark.LEFT_KNEE.value
+            ]
+            leg = [
+                mp_pose.PoseLandmark.LEFT_HIP.value,
+                mp_pose.PoseLandmark.LEFT_KNEE.value,
+                mp_pose.PoseLandmark.LEFT_ANKLE.value
             ]
             
             # Calculate angles.
@@ -129,8 +158,16 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
                 (landmarks[lower_arm[2]].x, landmarks[lower_arm[2]].y)
             )
             
+            leg_angle = calculate_angle(
+                (landmarks[leg[0]].x, landmarks[leg[0]].y),
+                (landmarks[leg[1]].x, landmarks[leg[1]].y),
+                (landmarks[leg[2]].x, landmarks[leg[2]].y)
+            )
+            
             # Calculate REBA score
-            reba_score = calculate_reba_score(neck_angle, trunk_angle, upper_arm_angle, lower_arm_angle)
+            angles = [neck_angle, trunk_angle, upper_arm_angle, lower_arm_angle, leg_angle]
+            angles = [45-angle for angle in angles]
+            reba_score = calculate_reba_score(angles)
             
             # Display REBA score
             cv2.putText(frame, f'REBA Score: {reba_score:.2f}', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
