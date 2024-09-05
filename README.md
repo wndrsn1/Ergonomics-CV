@@ -7,4 +7,4 @@
 -  The code in this repository utilizes opencv to calculate the REBA equation as well as general good lifting form, more features to be added soon  
 
 
-- Use run config.sh to set up dependencies
+- Use run setup.py to set up dependencies
