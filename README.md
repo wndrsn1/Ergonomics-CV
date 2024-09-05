@@ -7,4 +7,5 @@
 -  The code in this repository utilizes opencv to calculate the REBA equation as well as general good lifting form, more features to be added soon  
 
 
-- Use setup.py to set up dependencies
+- Use 'python setup.py' to set up dependencies
+- run with 'python posture_gui.py'
